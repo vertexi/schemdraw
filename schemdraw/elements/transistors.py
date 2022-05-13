@@ -2,7 +2,7 @@
 
 from .elements import Element, Element2Term
 from .twoterm import reswidth
-from ..segments import Segment, SegmentCircle
+from ..segments import Segment, SegmentCircle, SegmentPoly
 from ..types import Point
 
 
@@ -159,6 +159,45 @@ class PFet2(Element2Term):
 # Junction FETs
 fete = fetw*.2  # JFET extension
 jfetw = reswidth*3
+mosfetw = reswidth*4
+
+class MosFet(Element):
+    ''' Metal Oxide Semiconductor Field Effect Transistor
+
+        Anchors:
+            * source
+            * drain
+            * gate
+    '''
+    def __init__(self, *d, diode: bool=False, **kwargs):
+        super().__init__(*d, **kwargs)
+        self.segments.append(Segment(
+            [(0, 0), (0, -fetl-(mosfetw/2)), (jfetw, -fetl-(mosfetw/2))], arrow='->', arrowwidth=.2, arrowlength=.2))
+        self.segments.append(Segment([(jfetw, -fetl-(mosfetw/2)-(mosfetw/9)),
+                                      (jfetw, -fetl-(mosfetw/2)+(mosfetw/9))]))
+        self.segments.append(Segment([(0, -fetl), (jfetw, -fetl)]))
+        self.segments.append(Segment([(jfetw, -fetl-(mosfetw/9)), (jfetw, -fetl+(mosfetw/9))]))
+        self.segments.append(Segment([(0, -fetl-mosfetw), (jfetw, -fetl-mosfetw)]))
+        self.segments.append(Segment([(jfetw, -fetl-mosfetw-(mosfetw/9)), (jfetw, -fetl-mosfetw+(mosfetw/9))]))
+        self.segments.append(Segment([(0, -fetl-mosfetw), (0, -fetl-mosfetw-fetl)]))
+        self.segments.append(Segment([(jfetw*1.3+fetl, -fetl), (jfetw*1.3, -fetl), (jfetw*1.3, -fetl-mosfetw)]))
+        self.params['drop'] = (jfetw*1.3+fetl, -fetl)
+        self.anchors['source'] = (0, 0)
+        self.anchors['drain'] = (0, -fetl-mosfetw-fetl)
+        self.anchors['gate'] = (jfetw*1.3+fetl, -fetl)
+        self.params['lblloc'] = 'lft'
+        if diode:
+            self.segments.append(Segment([(0, -(fetl/2)), (-fetl/2, -(fetl/2)),
+                                          (-fetl/2, -(fetl)-(mosfetw/4))]))
+            self.segments.append(Segment([(0, -fetl-mosfetw-fetl/2), (-fetl/2, -fetl-mosfetw-fetl/2),
+                                          (-fetl/2, -fetl-mosfetw-fetl/2+(fetl/2)+(mosfetw/4))]))
+            self.segments.append(SegmentPoly([(-fetl/2, -fetl-mosfetw-fetl/2+(fetl/2)+(mosfetw/4)),
+                                              (-fetl/4, -(fetl)-(mosfetw/4)),
+                                              (fetl/4-fetl, -(fetl)-(mosfetw/4))], fill='black'))
+            self.segments.append(Segment([(-fetl/4, -fetl-mosfetw-fetl/2+(fetl/2)+(mosfetw/6)),
+                                          (fetl/4-fetl, -fetl-mosfetw-fetl/2+(fetl/2)+(mosfetw/6))]))
+            self.segments.append(SegmentCircle((0, -(fetl/2)), radius=0.050, fill=True, zorder=3))
+            self.segments.append(SegmentCircle((0, -fetl-mosfetw-fetl/2), radius=0.050, fill=True, zorder=3))
 
 
 class JFet(Element):
